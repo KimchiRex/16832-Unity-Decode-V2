@@ -29,14 +29,20 @@
 
 package org.firstinspires.ftc.teamcode.teleops;
 
+import static org.firstinspires.ftc.teamcode.teleops.ShooterTesting.FlywheelPIDFS.kS;
+
 import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.configurables.annotations.IgnoreConfigurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainNoPedroSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+
+import static org.firstinspires.ftc.teamcode.teleops.ShooterTesting.telemetryM;
 
 /*
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -52,43 +58,45 @@ import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
+
 @Configurable
-@TeleOp(name="Robot-Centric TeleOp", group="Iterative OpMode")
-public class RobotCentric extends OpMode
+@TeleOp(name="Shooter Testing", group="Iterative OpMode")
+public class ShooterTesting extends OpMode
 {
     // Declare OpMode members.
+    @IgnoreConfigurable
+    static TelemetryManager telemetryM;
     private ElapsedTime runtime = new ElapsedTime();
     public FlywheelSubsystem flywheel;
+
     public IntakeSubsystem intake;
-    public DrivetrainNoPedroSubsystem drivetrain;
-    //boolean isFlywheelRunning;
-    boolean isFlywheelOpen;
-    double flywheelVelocity = 0;
+    public double flywheelVelocity;
+    public double motorPower;
+    public double robotVoltage = 0;
+
     /*
      * Code to run ONCE when the driver hits INIT
      */
-
     @Configurable
-    public static class configurables {
-        public static double targetVelocity = 1200;
+    public static class FlywheelPIDFS {
+        public static double kS = 0.03, kV, kA;
+
+        public static double speed = 1200;
     }
 
     @Override
     public void init() {
-        telemetry.addData("Status", "Initialized");
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         flywheel = new FlywheelSubsystem(hardwareMap);
         flywheel.init();
         intake = new IntakeSubsystem(hardwareMap);
         intake.init();
-        drivetrain = new DrivetrainNoPedroSubsystem(hardwareMap);
-        drivetrain.init();
-
         // Tell the driver that initialization is complete.
-        telemetry.addData("Status", "Initialized");
+        //telemetryM.debug("idk text here");
     }
 
     /*
@@ -96,6 +104,11 @@ public class RobotCentric extends OpMode
      */
     @Override
     public void init_loop() {
+        robotVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
+        telemetryM.debug("flywheel velocity", + flywheelVelocity);
+        telemetryM.debug("flywheel power" + motorPower);
+        telemetryM.debug("robot voltage:" + robotVoltage);
+        telemetryM.update(telemetry);
     }
 
     /*
@@ -111,54 +124,19 @@ public class RobotCentric extends OpMode
      */
     @Override
     public void loop() {
-        //control for flywheel state
-        //flywheelVelocity = configurables.targetVelocity;
-        if (gamepad2.y) {
-            flywheelVelocity = 1200;
-        } else if (gamepad2.a) {
-            flywheelVelocity = 0;
-        } else if (gamepad2.x) {
-            flywheelVelocity = 2150
-            ;
-        }
-
-        //speed for flywheel state
-            flywheel.flywheelMotor.setPower(flywheel.flywheelPIDF.calculate(flywheel.flywheelMotor.getVelocity(), flywheelVelocity));
-
-        //control for servo state
-        if (gamepad2.dpad_up) {
-            isFlywheelOpen = true;
-        } else if (gamepad2.dpad_down) {
-            isFlywheelOpen = false;
-        }
-
-        //run the intake
-        if (gamepad2.right_trigger > 0) {
-            intake.setIntakePower(0.35);
-        } else if (gamepad2.left_trigger > 0) {
-            intake.setIntakePower(-0.35);
-        } else {
-            intake.setIntakePower(0);
-        }
-
-        //change state of servo
-        flywheel.manageScoring(isFlywheelOpen);
-
-        /*if (isFlywheelOpen && isFlywheelRunning) {
-            flywheel.changePID(2);
-        } else {
-            flywheel.changePID(1);
-        }*/
-
-        //run drivetrain
-        drivetrain.drive(gamepad1);
-
-        //send telemetry
-        //telemetry.addData("Flywheel Running: ", isFlywheelRunning);
-        telemetry.addData("Flywheel Velocity", flywheel.flywheelMotor.getVelocity());
-        telemetry.addData("Servo Open: ", isFlywheelOpen);
-        telemetry.addData("Intake Power: ", intake.intakeMotor.getPower());
+        intake.setIntakePower(.35);
+        robotVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();        // Setup a variable for each drive wheel to save power level for telemetry
+        //flywheel.flywheelController.calculate(1200);
+        flywheelVelocity = flywheel.flywheelMotor1.getVelocity();
+        motorPower = runtime.seconds() / 50;
+        flywheel.runPIDF();
+        telemetryM.debug("flywheel velocity:" + flywheelVelocity);
+        telemetryM.debug("flywheel power:" + motorPower);
+        telemetryM.debug("robot voltage:" + robotVoltage);
+        telemetryM.update(telemetry);
     }
+
+
 
     /*
      * Code to run ONCE after the driver hits STOP

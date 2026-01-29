@@ -40,8 +40,8 @@ public class Constants {
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .xVelocity(64.25/1.5)
-            .yVelocity(48.53/1.5);
+            .xVelocity(64.25/1.2)
+            .yVelocity(48.53/1.2);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
@@ -60,5 +60,5 @@ public class Constants {
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
-    public static Pose startingPose = new Pose(0,0,Math.toRadians(90));
+    public static Pose startingPose;// = new Pose(0,0,Math.toRadians(90));
 }

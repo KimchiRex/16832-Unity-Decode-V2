@@ -12,7 +12,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class IntakeSubsystem implements UnitySubsystem {
 
     //@Override
-    public DcMotorEx intakeMotor;
+    public DcMotorEx intakeMotor1;
+    public DcMotorEx intakeMotor2;
 
     public HardwareMap hardwareMap;
 
@@ -22,48 +23,31 @@ public class IntakeSubsystem implements UnitySubsystem {
 
     public void teleOpManual(Gamepad gamepad) {};
     public void init() {
-        intakeMotor = hardwareMap.get(DcMotorEx.class, "intakeMotor");
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        intakeMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        intakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        intakeMotor1 = hardwareMap.get(DcMotorEx.class, "intakeMotor1");
+        intakeMotor1.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeMotor1.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        intakeMotor1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        intakeMotor1.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        intakeMotor2 = hardwareMap.get(DcMotorEx.class, "intakeMotor2");
+        intakeMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
+        intakeMotor2.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        intakeMotor2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+        intakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
     }
 
-    public void setSpeed(double speed) {
-        intakeMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        intakeMotor.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-
-        intakeMotor.setVelocity(speed);
+    public void setIntake1(double velocity) {
+        intakeMotor1.setVelocity(velocity);
+    }
+    public void setIntake2(double velocity) {
+        intakeMotor2.setVelocity(velocity);
     }
 
-    public void intake(String intaking) {
-        if (intaking == "in") {
-            setSpeed(10);
-        } else if (intaking == "not"){
-            setSpeed(0);
-        } else if (intaking == "out") {
-            setSpeed(-10);
-        }
-    }
-    public void passOne() {
-        intakeMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        intakeMotor.setTargetPosition(intakeMotor.getCurrentPosition() + 500);
-        intakeMotor.setPower(.3);
+    public void setIntake1off() {
+        intakeMotor1.setPower(0);
     }
 
-    public void setIntakePower(double power) {
-        intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        intakeMotor.setPower(power);
-    }
-
-    public void intakeAuto() {
-        intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        intakeMotor.setPower(0.5);
-    }
-
-    public void intakeOffAuto() {
-        intakeMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        intakeMotor.setPower(0);
+    public void setIntake2off() {
+        intakeMotor2.setPower(0);
     }
 }

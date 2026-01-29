@@ -34,15 +34,17 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.firstinspires.ftc.teamcode.subsystems.DrivetrainNoPedroSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
 
 import java.util.function.Supplier;
 
@@ -66,46 +68,45 @@ public class FieldCentric extends OpMode
 {
     // Declare OpMode members.
     private Follower follower;
-    private ElapsedTime runtime = new ElapsedTime();
-    public FlywheelSubsystem flywheel;
+    public ShooterSubsystem shooter;
+    public VisionSubsystem vision;
     public IntakeSubsystem intake;
-    //boolean isFlywheelRunning;
-    boolean isFlywheelOpen;
-    double flywheelVelocity = 0;
-
     public static Pose startingPose;
-    private boolean automatedDrive;
-    private Supplier<PathChain> pathChain;
-    private TelemetryManager telemetryM;
-    private boolean slowMode = false;
-    private double slowModeMultiplier = 0.5;
+    public static Vector targetVector;
+    private boolean blockerOpen = false;
+    private boolean shooterRunning = false;
+
+    public enum SideColor {
+        RED, BLUE
+    }
+
+    SideColor sideColor = SideColor.BLUE;
     /*
      * Code to run ONCE when the driver hits INIT
      */
 
-    @Configurable
-    public static class configurables {
-        public static double targetVelocity = 1200;
-    }
-
     @Override
     public void init() {
-        if (startingPose == null) {
-            startingPose = new Pose(0,0,0);
-        }
         telemetry.addData("Status", "Initialized");
 
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        flywheel = new FlywheelSubsystem(hardwareMap);
-        flywheel.init();
+
+        follower = Constants.createFollower(hardwareMap);
+        shooter = new ShooterSubsystem(hardwareMap);
+        shooter.init();
+        vision = new VisionSubsystem(hardwareMap);
+        vision.init();
         intake = new IntakeSubsystem(hardwareMap);
         intake.init();
-        follower = Constants.createFollower(hardwareMap);
+        startingPose = Constants.startingPose;
+        if (startingPose == null) {
+            startingPose = new Pose(0,0,0);
+        }
         follower.setStartingPose(startingPose);
         follower.update();
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        Constants.driveConstants.setUseBrakeModeInTeleOp(true);
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -116,6 +117,21 @@ public class FieldCentric extends OpMode
      */
     @Override
     public void init_loop() {
+        if (gamepad1.leftBumperWasPressed()) {
+            sideColor = SideColor.BLUE;
+        } else if (gamepad1.rightBumperWasPressed()) {
+            sideColor = SideColor.RED;
+        }
+
+        if(sideColor == SideColor.BLUE) {
+            targetVector = new Vector(0,0);
+            telemetry.addLine("Side Color: BLUE");
+        } else {
+            targetVector = new Vector(0,0);
+            telemetry.addLine("Side Color: RED");
+        }
+
+        telemetry.addLine("\n=== LB: Blue, RB: Red ===");
     }
 
     /*
@@ -131,77 +147,71 @@ public class FieldCentric extends OpMode
      */
     @Override
     public void loop() {
-        //control for flywheel state
-        //flywheelVelocity = configurables.targetVelocity;
-        if (gamepad2.y) {
-            flywheelVelocity = 1200;
-        } else if (gamepad2.a) {
-            flywheelVelocity = 0;
-        } else if (gamepad2.x) {
-            flywheelVelocity = 2150
-            ;
-        }
-
-        //speed for flywheel state
-            flywheel.flywheelMotor.setPower(flywheel.flywheelPIDF.calculate(flywheel.flywheelMotor.getVelocity(), flywheelVelocity));
-
-        //control for servo state
-        if (gamepad2.dpad_up) {
-            isFlywheelOpen = true;
-        } else if (gamepad2.dpad_down) {
-            isFlywheelOpen = false;
-        }
-
-        //run the intake
-        if (gamepad2.right_trigger > 0) {
-            intake.setIntakePower(0.35);
-        } else if (gamepad2.left_trigger > 0) {
-            intake.setIntakePower(-0.35);
-        } else {
-            intake.setIntakePower(0);
-        }
-
-        //change state of servo
-        flywheel.manageScoring(isFlywheelOpen);
-
-        /*if (isFlywheelOpen && isFlywheelRunning) {
-            flywheel.changePID(2);
-        } else {
-            flywheel.changePID(1);
-        }*/
-
-        //run drivetrain
+        //run dt
         pedroDrive();
 
-        if (gamepad1.rightBumperWasPressed()) {
-            slowMode = !slowMode;
+        //vision and pose logic
+        vision.runLimelight(follower.getHeading() + shooter.turret.getAngle());
+        if (vision.canSee) {
+            //updates pose
+            if (gamepad1.rightBumperWasPressed()) follower.setPose(new Pose(
+                    vision.positionEstimate.getXComponent(), vision.positionEstimate.getYComponent(), follower.getHeading()));
+        }
+        //in case something fucks up
+        if (gamepad1.a && gamepad1.dpad_down) {
+            follower.setPose(new Pose(follower.getPose().getX(), follower.getPose().getY(), Math.toRadians(90)));
         }
 
-        //send telemetry
-        //telemetry.addData("Flywheel Running: ", isFlywheelRunning);
-        telemetry.addData("Flywheel Velocity", flywheel.flywheelMotor.getVelocity());
-        telemetry.addData("Servo Open: ", isFlywheelOpen);
-        telemetry.addData("Intake Power: ", intake.intakeMotor.getPower());
+        //intaking logic
+        if (gamepad1.right_trigger > 0.5) {
+            if (blockerOpen) {
+                intake.setIntake1(400);
+                intake.setIntake2(400);
+            } else {
+                intake.setIntake1(400);
+                intake.setIntake2off();
+            }
+        } else {
+            intake.setIntake1off();
+            intake.setIntake2off();
+        }
+
+        //shooting logic
+        if (gamepad1.right_bumper) {
+            blockerOpen = true;
+        } else {
+            blockerOpen = false;
+        }
+
+        if (gamepad1.left_bumper) {
+            shooterRunning = !shooterRunning;
+        }
+
+        if (shooterRunning) {
+            shooter.shootWhileMoving(follower.getPose(), targetVector, follower.getVelocity());
+        } else {
+            shooter.nullBehavior();
+        }
     }
 
     public void pedroDrive() {
         follower.update();
-        telemetryM.update();
 
-        if(!automatedDrive) {
-            if(!slowMode) follower.setTeleOpDrive(
-                -gamepad1.left_stick_y,
+        if (sideColor == SideColor.BLUE) {
+            follower.setTeleOpDrive(
+                    -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
                     -gamepad1.right_stick_x,
                     false
-                    );
-            } else follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier,
-                -gamepad1.left_stick_x * slowModeMultiplier,
-                -gamepad1.right_stick_x * slowModeMultiplier,
-                false
-        );
-
+            );
+        } else {
+            follower.setTeleOpDrive(
+                    gamepad1.left_stick_y,
+                    gamepad1.left_stick_x,
+                    -gamepad1.right_stick_x,
+                    false
+            );
+        }
         }
 
 
