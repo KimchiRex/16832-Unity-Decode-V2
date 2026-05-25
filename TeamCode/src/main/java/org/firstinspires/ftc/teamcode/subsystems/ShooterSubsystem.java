@@ -6,11 +6,10 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.seattlesolvers.solverslib.controller.PIDFController;
 import com.pedropathing.geometry.Pose;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.LLVisionSubsystem;
 
 public class ShooterSubsystem implements UnitySubsystem{
 
@@ -42,7 +41,6 @@ public class ShooterSubsystem implements UnitySubsystem{
         Vector shot = shotVector(botPose, targetPose);
         //math
 
-        //get lowest speed necessary and hood angle
 
         //execution
         turret.setAngle(shot.getTheta() - botPose.getHeading());
@@ -55,7 +53,6 @@ public class ShooterSubsystem implements UnitySubsystem{
         Vector shot = shotVector(botPose, targetPose).plus(botVelocity);
         //math
 
-        //get lowest speed necessary and hood angle
 
         //execution
         turret.setAngle(shot.getTheta() - botPose.getHeading());
@@ -65,7 +62,6 @@ public class ShooterSubsystem implements UnitySubsystem{
 
     public void nullBehavior() {
         flywheel.runMotorsTogether(0);
-        turret.turretMotor.setPower(0);
     }
 
 }

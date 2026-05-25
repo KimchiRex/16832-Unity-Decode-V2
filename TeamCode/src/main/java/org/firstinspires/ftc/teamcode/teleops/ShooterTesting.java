@@ -124,11 +124,9 @@ public class ShooterTesting extends OpMode
      */
     @Override
     public void loop() {
-        intake.setIntakePower(.35);
         robotVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();        // Setup a variable for each drive wheel to save power level for telemetry
         //flywheel.flywheelController.calculate(1200);
         flywheelVelocity = flywheel.flywheelMotor1.getVelocity();
-        motorPower = runtime.seconds() / 50;
         flywheel.runPIDF();
         telemetryM.debug("flywheel velocity:" + flywheelVelocity);
         telemetryM.debug("flywheel power:" + motorPower);

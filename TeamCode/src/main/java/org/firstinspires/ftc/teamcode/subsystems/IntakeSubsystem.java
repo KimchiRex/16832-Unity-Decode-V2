@@ -50,4 +50,8 @@ public class IntakeSubsystem implements UnitySubsystem {
     public void setIntake2off() {
         intakeMotor2.setPower(0);
     }
+
+    public void setIntakePower(double num) {
+
+    }
 }

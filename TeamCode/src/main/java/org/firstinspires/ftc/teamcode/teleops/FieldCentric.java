@@ -43,8 +43,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.LLVisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.WCVisionSubsystem;
 
 import java.util.function.Supplier;
 
@@ -69,7 +70,7 @@ public class FieldCentric extends OpMode
     // Declare OpMode members.
     private Follower follower;
     public ShooterSubsystem shooter;
-    public VisionSubsystem vision;
+    public LLVisionSubsystem vision;
     public IntakeSubsystem intake;
     public static Pose startingPose;
     public static Vector targetVector;
@@ -96,7 +97,7 @@ public class FieldCentric extends OpMode
         follower = Constants.createFollower(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
         shooter.init();
-        vision = new VisionSubsystem(hardwareMap);
+        vision = new LLVisionSubsystem(hardwareMap);
         vision.init();
         intake = new IntakeSubsystem(hardwareMap);
         intake.init();
