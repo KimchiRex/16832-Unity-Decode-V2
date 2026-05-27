@@ -41,6 +41,8 @@ public class DriveSubsystem implements UnitySubsystem {
         return new Pose2d();
     }
 
+    public void setPose(Pose2d pose) {}
+
     public void updateOdometry() {
 
     }
