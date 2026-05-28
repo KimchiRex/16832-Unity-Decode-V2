@@ -72,7 +72,6 @@ public class ShooterTesting extends OpMode
     public IntakeSubsystem intake;
     public double flywheelVelocity;
     public double motorPower;
-    public double robotVoltage = 0;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -104,10 +103,8 @@ public class ShooterTesting extends OpMode
      */
     @Override
     public void init_loop() {
-        robotVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
         telemetryM.debug("flywheel velocity", + flywheelVelocity);
         telemetryM.debug("flywheel power" + motorPower);
-        telemetryM.debug("robot voltage:" + robotVoltage);
         telemetryM.update(telemetry);
     }
 
@@ -124,13 +121,10 @@ public class ShooterTesting extends OpMode
      */
     @Override
     public void loop() {
-        robotVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();        // Setup a variable for each drive wheel to save power level for telemetry
-        //flywheel.flywheelController.calculate(1200);
         flywheelVelocity = flywheel.flywheelMotor1.getVelocity();
         flywheel.runPIDF();
         telemetryM.debug("flywheel velocity:" + flywheelVelocity);
         telemetryM.debug("flywheel power:" + motorPower);
-        telemetryM.debug("robot voltage:" + robotVoltage);
         telemetryM.update(telemetry);
     }
 
