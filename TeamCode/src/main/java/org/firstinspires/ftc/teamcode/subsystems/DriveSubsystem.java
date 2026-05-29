@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import com.arcrobotics.ftclib.controller.PIDFController;
 import com.arcrobotics.ftclib.geometry.Pose2d;
 import com.arcrobotics.ftclib.hardware.motors.Motor;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Gamepad;
@@ -16,6 +18,7 @@ public class DriveSubsystem implements UnitySubsystem {
     private GoBildaPinpointDriver pinpoint;
     private HardwareMap hardwareMap;
     private MecanumDrive drive = new MecanumDrive(frontLeft, frontRight, backLeft, backRight);
+    private PIDFController turnPID = new PIDFController(0,0,0,0);
 
     public DriveSubsystem(HardwareMap hardwareMap) {
         this.hardwareMap = hardwareMap;
@@ -37,17 +40,27 @@ public class DriveSubsystem implements UnitySubsystem {
 
     }
 
-    public Pose2d getPose(double targetAngle) {
-        return new Pose2d();
+    public Pose getPose() {
+        return new Pose();
     }
 
-    public void setPose(Pose2d pose) {}
+    public void setPose(Pose pose) {}
 
     public void updateOdometry() {
 
     }
 
+    public void runDrivetrainRobotCentric(Gamepad gamepad) {
+        drive.driveRobotCentric(gamepad.left_stick_y, gamepad.left_stick_x, gamepad.right_stick_x);
+    }
 
+    public void runDrivetrainRobotCentric(double strafe, double forward, double turn) {
+        drive.driveRobotCentric(strafe, forward, turn);
+    }
+
+    public double getTurnPID(double robotHeading, double targetHeading) {
+        return turnPID.calculate(targetHeading - robotHeading);
+    }
     public double getAngle(){
         return 0;
     }

@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystems;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
 
 import com.pedropathing.ftc.localization.Encoder;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -36,6 +37,10 @@ public class TurretSubsystem implements UnitySubsystem {
         //does some
         turretServo1.setPosition(servoPosition);
         turretServo2.setPosition(servoPosition);
+    }
+
+    public void updatePosition(Pose robotPose, Pose targetPose) {
+        //do something ig
     }
 
     public double getAngle(){

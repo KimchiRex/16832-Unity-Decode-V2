@@ -60,7 +60,7 @@ public class Constants {
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
-    public static Pose endAuto;
+    public static Pose endAutoPose;
     public enum GoalSide {
         BLUE,
         RED,

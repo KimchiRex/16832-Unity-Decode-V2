@@ -29,20 +29,27 @@
 
 package org.firstinspires.ftc.teamcode.teleops;
 
-import static org.firstinspires.ftc.teamcode.teleops.ShooterTesting.FlywheelPIDFS.kS;
-
+import com.arcrobotics.ftclib.geometry.Pose2d;
+import com.pedropathing.geometry.Pose;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.math.Vector;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.TurretSubsystem;
+import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 
 import static org.firstinspires.ftc.teamcode.teleops.ShooterTesting.telemetryM;
+
+import java.util.List;
 
 /*
  * This file contains an example of an iterative (Non-Linear) "OpMode".
@@ -67,35 +74,52 @@ public class ShooterTesting extends OpMode
     @IgnoreConfigurable
     static TelemetryManager telemetryM;
     private ElapsedTime runtime = new ElapsedTime();
+    private List<LynxModule> allHubs;
     public FlywheelSubsystem flywheel;
 
     public IntakeSubsystem intake;
-    public double flywheelVelocity;
-    public double motorPower;
+    public TurretSubsystem turret;
+    public ShooterSubsystem shooter;
+    public DriveSubsystem drivetrain;
+    public Vector targetPose;
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Configurable
-    public static class FlywheelPIDFS {
-        public static double kS = 0.03, kV, kA;
+    public static class TuningValues {
+        public static double kP, kI, kD, kF;
 
-        public static double speed = 1200;
+        public static double flywheelVelocity = 1200;
+        public static double shooterAngle = 0;
+        public static double initalIntakePower = 1;
+        public static double transferPower = 1;
+
+        public static double targetPoseX = 12;
+        public static double targetPoseY = 134;
     }
 
     @Override
     public void init() {
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
+        allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }
+
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         flywheel = new FlywheelSubsystem(hardwareMap);
         flywheel.init();
         intake = new IntakeSubsystem(hardwareMap);
         intake.init();
-        // Tell the driver that initialization is complete.
-        //telemetryM.debug("idk text here");
+        turret = new TurretSubsystem(hardwareMap);
+        turret.init();
+        drivetrain = new DriveSubsystem(hardwareMap);
+        drivetrain.init();
+        drivetrain.setPose(new Pose(70.75, 70.75, Math.toRadians(90)));
+        shooter = new ShooterSubsystem(hardwareMap);
+
+        targetPose = new Vector(TuningValues.targetPoseX, TuningValues.targetPoseY);
     }
 
     /*
@@ -103,8 +127,6 @@ public class ShooterTesting extends OpMode
      */
     @Override
     public void init_loop() {
-        telemetryM.debug("flywheel velocity", + flywheelVelocity);
-        telemetryM.debug("flywheel power" + motorPower);
         telemetryM.update(telemetry);
     }
 
@@ -121,10 +143,31 @@ public class ShooterTesting extends OpMode
      */
     @Override
     public void loop() {
-        flywheelVelocity = flywheel.flywheelMotor1.getVelocity();
-        flywheel.runPIDF();
-        telemetryM.debug("flywheel velocity:" + flywheelVelocity);
-        telemetryM.debug("flywheel power:" + motorPower);
+
+        for (LynxModule hub : allHubs) {
+            hub.clearBulkCache();  // Once per loop
+        }
+
+        drivetrain.updateOdometry();
+
+        turret.updatePosition(drivetrain.getPose(), new Pose());
+
+        flywheel.runPIDF(TuningValues.flywheelVelocity);
+
+        if (gamepad1.right_trigger > 0.05) {
+            intake.setPowerInitialIntake(TuningValues.initalIntakePower);
+            intake.setPowerTransfer(TuningValues.transferPower);
+        } else {
+            intake.turnOffFloat();
+        }
+
+        telemetryM.debug("flywheel velocity:" + flywheel.flywheelMotor1.getVelocity());
+        telemetryM.debug("flywheel power:" + flywheel.flywheelMotor1.getPower());
+        telemetryM.debug("robot x: ", drivetrain.getPose().getX());
+        telemetryM.debug("robot y: ", drivetrain.getPose().getY());
+        telemetryM.debug("robot heading: ", drivetrain.getPose().getHeading());
+        telemetryM.debug("distance to target: ", shooter.getShotVector(drivetrain.getPose(), targetPose));
+
         telemetryM.update(telemetry);
     }
 

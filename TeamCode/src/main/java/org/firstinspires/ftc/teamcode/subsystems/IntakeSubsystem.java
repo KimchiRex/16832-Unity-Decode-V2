@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.tel
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -14,6 +15,8 @@ public class IntakeSubsystem implements UnitySubsystem {
     //@Override
     public DcMotorEx intakeMotor1;
     public DcMotorEx intakeMotor2;
+
+    public DigitalChannel breakBeamTransfer;
 
     public HardwareMap hardwareMap;
 
@@ -34,24 +37,31 @@ public class IntakeSubsystem implements UnitySubsystem {
         intakeMotor2.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         intakeMotor2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         intakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+
+        breakBeamTransfer = hardwareMap.get(DigitalChannel.class, "breakBeam1");
+        breakBeamTransfer.setMode(DigitalChannel.Mode.INPUT);
     }
 
-    public void setIntake1(double velocity) {
-        intakeMotor1.setVelocity(velocity);
+    public void setPowerInitialIntake(double power) {
+        intakeMotor1.setPower(power);
     }
-    public void setIntake2(double velocity) {
-        intakeMotor2.setVelocity(velocity);
+    public void setPowerTransfer(double power) {
+        intakeMotor2.setPower(power);
     }
 
-    public void setIntake1off() {
+    public void turnOffFloat() {
+        intakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         intakeMotor1.setPower(0);
-    }
-
-    public void setIntake2off() {
         intakeMotor2.setPower(0);
     }
 
-    public void setIntakePower(double num) {
+    public void turnOffBrake() {
+        intakeMotor2.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        intakeMotor1.setPower(0);
+        intakeMotor2.setPower(0);
+    }
 
+    public boolean getBallStoredInTransfer() {
+        return !breakBeamTransfer.getState();
     }
 }

@@ -61,7 +61,6 @@ public class BlueSolo21 extends OpMode {
     public void loop() {
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
-        Constants.endAuto = follower.getPose();
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
         telemetry.addData("x", follower.getPose().getX());
@@ -100,7 +99,9 @@ public class BlueSolo21 extends OpMode {
     }
     /** We do not use this because everything should automatically disable **/
     @Override
-    public void stop() {}
+    public void stop() {
+        Constants.endAutoPose = follower.getPose();
+    }
     public void scoreArtifactsClose(PathChain nextPath, int numNextPath) {
         if (follower.getDistanceTraveledOnPath() > 15 && pathTimer.getElapsedTimeSeconds() > 0.3) {
             intaking = 0;

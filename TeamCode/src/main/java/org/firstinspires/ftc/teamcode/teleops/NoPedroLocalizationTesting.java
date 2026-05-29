@@ -40,14 +40,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystem;
 
 import java.util.List;
 
 //testing our teleop localization, likely using pose values for auto pathing
 @Configurable
 @TeleOp(name="Shooter Testing", group="Iterative OpMode")
-public class IntakeTesting extends OpMode
+public class NoPedroLocalizationTesting extends OpMode
 {
     // Declare OpMode members.
     @IgnoreConfigurable
@@ -55,15 +54,21 @@ public class IntakeTesting extends OpMode
     private ElapsedTime runtime = new ElapsedTime();
     private List<LynxModule> allHubs;
     public DriveSubsystem drivetrain;
-    public IntakeSubsystem intake;
 
     /*
      * Code to run ONCE when the driver hits INIT
      */
     @Configurable
     public static class TuningValues {
+        public static double kP, kI, kD, kF;
+
+        public static double flywheelVelocity = 1200;
+        public static double shooterAngle = 0;
         public static double initalIntakePower = 1;
         public static double transferPower = 1;
+
+        public static double targetPoseX = 12;
+        public static double targetPoseY = 134;
     }
 
     @Override
@@ -112,22 +117,9 @@ public class IntakeTesting extends OpMode
             drivetrain.setPose(new Pose(70.75, 70.75, Math.toRadians(90)));
         }
 
-        if (gamepad1.right_trigger > 0) {
-            intake.setPowerInitialIntake(TuningValues.initalIntakePower);
-        } else {
-            intake.setPowerInitialIntake(0);
-        }
-
-        if (gamepad1.right_trigger > 0) {
-            intake.setPowerTransfer(TuningValues.transferPower);
-        } else {
-            intake.setPowerTransfer(0);
-        }
-
         telemetryM.debug("robot x: ", drivetrain.getPose().getX());
         telemetryM.debug("robot y: ", drivetrain.getPose().getY());
         telemetryM.debug("robot heading: ", drivetrain.getPose().getHeading());
-        telemetryM.debug("ball in transfer: ", intake.getBallStoredInTransfer());
 
         telemetryM.update(telemetry);
     }
