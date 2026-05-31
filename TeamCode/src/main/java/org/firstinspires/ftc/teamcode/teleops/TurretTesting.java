@@ -45,7 +45,7 @@ import java.util.List;
 
 //testing our teleop localization, likely using pose values for auto pathing
 @Configurable
-@TeleOp(name="Shooter Testing", group="Iterative OpMode")
+@TeleOp(name="Turret Testing", group="Iterative OpMode")
 public class TurretTesting extends OpMode
 {
     // Declare OpMode members.

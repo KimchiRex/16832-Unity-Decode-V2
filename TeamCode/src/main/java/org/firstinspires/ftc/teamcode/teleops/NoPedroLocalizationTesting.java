@@ -39,13 +39,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import org.firstinspires.ftc.teamcode.subsystems.DriveSubsystem;
 
 import java.util.List;
 
 //testing our teleop localization, likely using pose values for auto pathing
 @Configurable
-@TeleOp(name="Shooter Testing", group="Iterative OpMode")
+@TeleOp(name="Drivetrain Teleop Testing", group="Iterative OpMode")
 public class NoPedroLocalizationTesting extends OpMode
 {
     // Declare OpMode members.
@@ -55,33 +56,16 @@ public class NoPedroLocalizationTesting extends OpMode
     private List<LynxModule> allHubs;
     public DriveSubsystem drivetrain;
 
-    /*
-     * Code to run ONCE when the driver hits INIT
-     */
-    @Configurable
-    public static class TuningValues {
-        public static double kP, kI, kD, kF;
-
-        public static double flywheelVelocity = 1200;
-        public static double shooterAngle = 0;
-        public static double initalIntakePower = 1;
-        public static double transferPower = 1;
-
-        public static double targetPoseX = 12;
-        public static double targetPoseY = 134;
-    }
-
     @Override
     public void init() {
-
-        allHubs = hardwareMap.getAll(LynxModule.class);
-        for (LynxModule hub : allHubs) {
-            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
-        }
-
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        drivetrain = new DriveSubsystem(hardwareMap);
         drivetrain.init();
         drivetrain.setPose(new Pose(70.75, 70.75, Math.toRadians(90)));
+        /*allHubs = hardwareMap.getAll(LynxModule.class);
+        for (LynxModule hub : allHubs) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
+        }*/
     }
 
     /*
@@ -105,11 +89,11 @@ public class NoPedroLocalizationTesting extends OpMode
      */
     @Override
     public void loop() {
-
+        /*
         for (LynxModule hub : allHubs) {
             hub.clearBulkCache();  // Once per loop
         }
-
+        */
         drivetrain.updateOdometry();
         drivetrain.runDrivetrainRobotCentric(gamepad1);
 
@@ -117,9 +101,11 @@ public class NoPedroLocalizationTesting extends OpMode
             drivetrain.setPose(new Pose(70.75, 70.75, Math.toRadians(90)));
         }
 
-        telemetryM.debug("robot x: ", drivetrain.getPose().getX());
-        telemetryM.debug("robot y: ", drivetrain.getPose().getY());
-        telemetryM.debug("robot heading: ", drivetrain.getPose().getHeading());
+        Pose currentPose = drivetrain.getPose();
+
+        telemetryM.debug("robot x: ", currentPose.getX());
+        telemetryM.debug("robot y: ", currentPose.getY());
+        telemetryM.debug("robot heading: ", Math.toDegrees(currentPose.getHeading()));
 
         telemetryM.update(telemetry);
     }

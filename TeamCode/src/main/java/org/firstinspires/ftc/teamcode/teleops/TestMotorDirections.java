@@ -23,7 +23,8 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 @TeleOp(name="WheelDirectionDebugger", group="Iterative OpMode")
-public class TestMotorDirections extends OpMode
+public class
+TestMotorDirections extends OpMode
 {
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -42,10 +43,10 @@ public class TestMotorDirections extends OpMode
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftFront  = hardwareMap.get(DcMotor.class, "leftFront");
-        leftBack = hardwareMap.get(DcMotor.class, "leftBack");
-        rightFront  = hardwareMap.get(DcMotor.class, "rightFront");
-        rightBack = hardwareMap.get(DcMotor.class, "rightBack");
+        leftFront  = hardwareMap.get(DcMotor.class, "frontLeft");
+        leftBack = hardwareMap.get(DcMotor.class, "backLeft");
+        rightFront  = hardwareMap.get(DcMotor.class, "frontRight");
+        rightBack = hardwareMap.get(DcMotor.class, "backRight");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.

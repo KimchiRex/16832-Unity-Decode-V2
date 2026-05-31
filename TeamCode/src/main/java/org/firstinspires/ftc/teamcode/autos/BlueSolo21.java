@@ -24,13 +24,13 @@ public class BlueSolo21 extends OpMode {
     public FlywheelSubsystem flywheel;
     public IntakeSubsystem intake;
 
-    private final Pose startPose = new Pose(48, 134, Math.toRadians(-90));
+    private final Pose startPose = new Pose(48, 134, Math.toRadians(-90)); //39.6, 136.59, -90
     private final Pose scorePreloadPose = new Pose(60, 85, Math.toRadians(136.5));
     private final Pose scorePose= new Pose();
     private final Pose pickup1Pose = new Pose(20, 82, Math.toRadians(180));
     private final Pose pickup2Pose = new Pose(16, 56.5, Math.toRadians(180));
     private final Pose pickup3Pose = new Pose(18.5, 68, Math.toRadians(180));
-    private final Pose intakeGate = new Pose(13, 56, Math.toRadians(155));
+    private final Pose intakeGate = new Pose(13, 56, Math.toRadians(155)); //12.22, 59.21, 145
     private final Pose leavePointPrepareTeleOp = new Pose(50, 65, Math.toRadians(180));
     private Path scorePreload;
     private PathChain grabSecondRow, scoreSecondRow, grabRamp, scoreRamp, grabFirstRow, scoreFirstRow, extraHit;
